@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+Thumbs.db
+
+# NASA dataset - keep separate
+data/*.txt
+data/*.zip
+
+# Generated user data
+workorders.json

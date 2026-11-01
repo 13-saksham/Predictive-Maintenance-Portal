@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>Meridian PredictAI | Fleet Health</title>
+
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #F8F7F4;
+            --surface: #fff;
+            --border: #DEDBD4;
+            --text: #17202C;
+            --muted: #586270;
+            --primary: #1E3A5F;
+            --danger: #A8281C;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: 16px/1.6 "IBM Plex Sans", sans-serif
+        }
+
+        .w {
+            max-width: 1250px;
+            margin: auto;
+            padding: 0 24px
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 10
+        }
+
+        header .w {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            min-height: 60px;
+            flex-wrap: wrap
+        }
+
+        .brand,
+        .sub,
+        nav a {
+            text-decoration: none;
+            display: inline-block
+        }
+
+        .brand {
+            font-weight: 700;
+            color: var(--text)
+        }
+
+        .sub {
+            color: var(--muted);
+            border-left: 1px solid var(--border);
+            padding-left: 18px
+        }
+
+        .brand.on,
+        .sub.on {
+            color: var(--primary);
+            font-weight: 700
+        }
+
+        header .brand,
+        header .sub {
+            padding-top: 16px;
+            padding-bottom: 16px
+        }
+
+        nav {
+            display: flex;
+            gap: 22px;
+            margin-left: auto;
+            flex-wrap: wrap
+        }
+
+        nav a {
+            color: var(--text);
+            padding: 16px 0;
+            border-bottom: 2px solid transparent
+        }
+
+        nav a.on {
+            border-color: var(--primary);
+            font-weight: 600
+        }
+
+        a {
+            color: var(--primary)
+        }
+
+        main {
+            padding-top: 36px;
+            padding-bottom: 80px;
+            min-height: 75vh
+        }
+
+        h1 {
+            font-size: 32px;
+            line-height: 1.2;
+            margin: 0 0 24px
+        }
+
+        h2 {
+            font-size: 21px;
+            margin: 36px 0 14px
+        }
+
+        .m {
+            color: var(--muted)
+        }
+
+        .mono {
+            font-family: "IBM Plex Mono", monospace
+        }
+
+        .err {
+            color: var(--danger)
+        }
+
+        .scroll {
+            overflow-x: auto
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+            background: white;
+            border: 1px solid var(--border)
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 500;
+            background: white;
+            white-space: nowrap
+        }
+
+        tbody tr:hover {
+            background: #F5F6F8
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        .Critical {
+            color: #A8281C;
+            background: #FBE9E7
+        }
+
+        .High {
+            color: #8A5A00;
+            background: #FBF1DC
+        }
+
+        .Medium {
+            color: #1E3A5F;
+            background: #E4EAF2
+        }
+
+        .Low,
+        .Approved {
+            color: #1F6B43;
+            background: #E6F2EA
+        }
+
+        .Draft {
+            color: #586270;
+            background: #ECEAE5
+        }
+
+        .Cancelled {
+            color: #7B6B6B;
+            background: #F0E9E9
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+            align-items: center
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit
+        }
+
+        button {
+            min-height: 40px;
+            padding: 8px 16px;
+            border: 1px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        button:hover {
+            background: #EDF1F6
+        }
+
+        button.on,
+        button.p {
+            background: var(--primary);
+            color: white
+        }
+
+        button:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        input[type=text],
+        textarea,
+        select {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 9px 12px;
+            background: white;
+            min-height: 40px
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px
+        }
+
+        .box,
+        .card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin: 24px 0
+        }
+
+        .card .number {
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 1.4
+        }
+
+        .card .label {
+            color: var(--muted);
+            font-size: 14px
+        }
+
+        .chart {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            height: 350px
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px
+        }
+
+        .chk label {
+            margin-right: 16px;
+            white-space: nowrap
+        }
+
+        dl {
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            gap: 8px 24px
+        }
+
+        dt {
+            color: var(--muted)
+        }
+
+        dd {
+            margin: 0
+        }
+
+        .doc {
+            max-width: 800px
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px
+        }
+
+        footer {
+            padding-bottom: 32px
+        }
+
+        @media(max-width:800px) {
+            header .w {
+                gap: 12px
+            }
+
+            nav {
+                width: 100%;
+                margin-left: 0;
+                gap: 20px
+            }
+
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr
+            }
+
+            h1 {
+                font-size: 27px
+            }
+        }
+
+        @media(max-width:480px) {
+            .w {
+                padding-left: 14px;
+                padding-right: 14px
+            }
+
+            .cards {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px
+            }
+
+            .card {
+                padding: 12px
+            }
+
+            .card .number {
+                font-size: 24px
+            }
+        }
+
+        @media print {
+
+            header,
+            .row,
+            .noprint {
+                display: none
+            }
+
+            body {
+                background: white
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="w">
+            <a class="brand navlink" href="#/">Fleet Health</a>
+            <a class="sub navlink" href="#/prognostics">Engine prognostics</a>
+            <nav>
+                <a class="navlink" href="#/">Fleet</a>
+                <a class="navlink" href="#/wo">Work orders</a>
+                <a class="navlink" href="#/model">Model</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="w" id="app">
+        <p class="m">Loading Meridian PredictAI...</p>
+    </main>
+
+    <footer class="w m">
+        Predictions are decision support, not a substitute for engineering judgement.
+    </footer>
+
+    <script>
+        "use strict";
+
+        const $ = s => document.querySelector(s);
+        const app = $("#app");
+        const COLORS = ["#1E3A5F", "#2F6F73", "#B07A1A", "#7B8794", "#A8281C", "#5B4B8A"];
+
+        let charts = [];
+        let band = "All";
+        let searchQuery = "";
+        let workOrderStatus = "All";
+
+        const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+            "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[c]));
+
+        const num = value => Math.round(Number(value) || 0);
+
+        const badge = value =>
+            `<span class="badge ${escapeHTML(value)}">${escapeHTML(value)}</span>`;
+
+        async function api(path, options = {}) {
+            const config = {};
+
+            if (options.method) {
+                config.method = options.method;
+                config.headers = { "Content-Type": "application/json" };
+
+                if (options.body !== undefined) {
+                    config.body = JSON.stringify(options.body);
+                }
+            }
+
+            const response = await fetch("/api" + path, config);
+
+            let result;
+            try {
+                result = await response.json();
+            } catch {
+                throw new Error("The server returned an invalid response.");
+            }
+
+            if (!response.ok) {
+                throw new Error(result.detail || "Request failed.");
+            }
+
+            return result;
+        }
+
+        function clearCharts() {
+            charts.forEach(chart => {
+                try { chart.destroy(); } catch { }
+            });
+            charts = [];
+        }
+
+        function makeChart(selector, config) {
+            const canvas = $(selector);
+            if (!canvas) return null;
+
+            const chart = new Chart(canvas, config);
+            charts.push(chart);
+            return chart;
+        }
+
+        function chartOptions(xLabel) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: { title: { display: true, text: xLabel } }
+                },
+                plugins: { legend: { position: "bottom" } }
+            };
+        }
+
+        /* NAVIGATION */
+
+        function currentRoute() {
+            const hash = location.hash || "#/";
+            const clean = hash.replace(/^#\/?/, "").replace(/\/+$/, "");
+            const parts = clean.split("/");
+
+            return {
+                page: parts[0] || "",
+                id: parts.slice(1).join("/")
+            };
+        }
+
+        function navigate(path) {
+            if (location.hash === path) {
+                renderRoute();
+            } else {
+                location.hash = path;
+            }
+        }
+
+        document.addEventListener("click", event => {
+            const link = event.target.closest("a.navlink");
+            if (!link) return;
+
+            const href = link.getAttribute("href");
+            if (!href || !href.startsWith("#/")) return;
+
+            event.preventDefault();
+            navigate(href);
+        });
+
+        async function renderRoute() {
+            clearCharts();
+
+            const { page, id } = currentRoute();
+
+            document.querySelectorAll(".navlink").forEach(link => {
+                const href = link.getAttribute("href");
+
+                const active =
+                    (page === "" && href === "#/") ||
+                    (page === "prognostics" && href === "#/prognostics") ||
+                    (page === "wo" && href === "#/wo") ||
+                    (page === "model" && href === "#/model");
+
+                link.classList.toggle("on", active);
+            });
+
+            app.innerHTML = '<p class="m">Loading page...</p>';
+
+            const pages = {
+                "": fleet,
+                "prognostics": prognostics,
+                "m": machine,
+                "wo": id ? workOrderDetail : workOrderList,
+                "model": modelPerformance
+            };
+
+            if (!pages[page]) {
+                navigate("#/");
+                return;
+            }
+
+            try {
+                await pages[page](id);
+            } catch (error) {
+                console.error(error);
+
+                app.innerHTML = `
+      <h1>Unable to load this page</h1>
+      <p class="err">${escapeHTML(error.message)}</p>
+      <button class="p" id="returnFleet">Return to Fleet Health</button>
+      <button id="retry">Retry</button>
+    `;
+
+                $("#returnFleet").onclick = () => navigate("#/");
+                $("#retry").onclick = renderRoute;
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        /* FLEET HEALTH */
+
+        async function fleet() {
+            const machines = await api("/machines");
+
+            const count = value => value === "All"
+                ? machines.length
+                : machines.filter(m => m.band === value).length;
+
+            app.innerHTML = `
+    <h1>Fleet risk</h1>
+    <p class="m">Monitor machine health and prioritize maintenance.</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="number">${machines.length}</div>
+        <div class="label">Engines monitored</div>
+      </div>
+      <div class="card">
+        <div class="number" style="color:#A8281C">${count("Critical")}</div>
+        <div class="label">Critical risk</div>
+      </div>
+      <div class="card">
+        <div class="number" style="color:#8A5A00">${count("High")}</div>
+        <div class="label">High risk</div>
+      </div>
+      <div class="card">
+        <div class="number">${count("Medium") + count("Low")}</div>
+        <div class="label">Medium and low risk</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      ${["All", "Critical", "High", "Medium", "Low"].map(b => `
+        <button data-band="${b}" class="${band === b ? "on" : ""}">
+          ${b} ${count(b)}
+        </button>
+      `).join("")}
+      <input id="machineSearch" type="text"
+        placeholder="Search machine ID"
+        value="${escapeHTML(searchQuery)}">
+    </div>
+
+    <div id="machineTable" class="scroll"></div>
+  `;
+
+            function drawTable() {
+                const filtered = machines.filter(m =>
+                    (band === "All" || m.band === band) &&
+                    String(m.machineId).toLowerCase().includes(searchQuery)
+                );
+
+                $("#machineTable").innerHTML = filtered.length ? `
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th><th>Machine</th><th>Priority (risk)</th>
+            <th>Predicted RUL</th><th>Failure within 30 cycles</th>
+            <th>Likely component</th><th>Cycles observed</th><th>Work order</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map(m => `
+            <tr>
+              <td>${machines.indexOf(m) + 1}</td>
+              <td><a href="#/m/${encodeURIComponent(m.machineId)}">${escapeHTML(m.machineId)}</a></td>
+              <td>${badge(m.band)} ${num(m.riskScore)}</td>
+              <td>${num(m.predictedRul)} <span class="m">(${num(m.rulLower)}–${num(m.rulUpper)})</span></td>
+              <td>${num(m.failureProb30 * 100)}%</td>
+              <td>${escapeHTML(m.componentName)}</td>
+              <td>${num(m.cyclesObserved)}</td>
+              <td>${m.workOrderId
+                        ? `<a href="#/wo/${encodeURIComponent(m.workOrderId)}">${escapeHTML(m.workOrderId)}</a>`
+                        : "None"}
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    ` : '<p class="m">No machines match your filters.</p>';
+            }
+
+            drawTable();
+
+            $("#machineSearch").oninput = event => {
+                searchQuery = event.target.value.toLowerCase();
+                drawTable();
+            };
+
+            document.querySelectorAll("[data-band]").forEach(button => {
+                button.onclick = () => {
+                    band = button.dataset.band;
+                    fleet();
+                };
+            });
+        }
+
+        /* ENGINE PROGNOSTICS — SEPARATE PAGE */
+
+        async function prognostics() {
+            const machines = await api("/machines");
+
+            const sorted = [...machines].sort(
+                (a, b) => (b.riskScore || 0) - (a.riskScore || 0)
+            );
+
+            const critical = sorted.filter(m => m.band === "Critical").length;
+
+            const averageRUL = sorted.length
+                ? Math.round(sorted.reduce((sum, m) =>
+                    sum + Number(m.predictedRul || 0), 0) / sorted.length)
+                : 0;
+
+            const firstID = sorted[0]?.machineId || "";
+
+            app.innerHTML = `
+    <button id="backFleet">← Back to Fleet Health</button>
+
+    <h1 style="margin-top:24px">Engine prognostics</h1>
+
+    <p class="m">
+      Analyze individual engine degradation, sensor behaviour,
+      failure risk and estimated remaining useful life.
+    </p>
+
+    <div class="cards">
+      <div class="card"><div class="number">${sorted.length}</div><div class="label">Engines monitored</div></div>
+      <div class="card"><div class="number">${critical}</div><div class="label">Critical-risk engines</div></div>
+      <div class="card"><div class="number">${averageRUL}</div><div class="label">Average RUL (cycles)</div></div>
+      <div class="card"><div class="number">${sorted.filter(m => m.failureProb30 >= .7).length}</div><div class="label">High near-term risk</div></div>
+    </div>
+
+    <div class="box">
+      <label for="progEngine"><strong>Select engine for prognostics</strong></label><br>
+      <select id="progEngine" style="margin-top:8px;width:100%;max-width:450px">
+        ${sorted.map(m => `
+          <option value="${escapeHTML(m.machineId)}" ${m.machineId === firstID ? "selected" : ""}>
+            ${escapeHTML(m.machineId)} — ${escapeHTML(m.band)} risk (${num(m.riskScore)})
+          </option>
+        `).join("")}
+      </select>
+      <p class="m">Select an engine to update the analysis below without leaving this page.</p>
+    </div>
+
+    <div id="prognosticDetail">
+      <p class="m">Loading engine analysis...</p>
+    </div>
+
+    <h2>Fleet prognostics ranking</h2>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Rank</th><th>Engine</th><th>Risk</th><th>Predicted RUL</th><th>Failure within 30 cycles</th><th>Component</th></tr>
+        </thead>
+        <tbody>
+          ${sorted.map((m, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td><button class="enginePick" data-engine="${escapeHTML(m.machineId)}">${escapeHTML(m.machineId)}</button></td>
+              <td>${badge(m.band)} ${num(m.riskScore)}</td>
+              <td>${num(m.predictedRul)} cycles</td>
+              <td>${num(m.failureProb30 * 100)}%</td>
+              <td>${escapeHTML(m.componentName || "Indicative estimate")}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="m">
+      Predictions are estimates based on simulated NASA C-MAPSS data,
+      not guaranteed failure dates or confirmed component diagnoses.
+    </p>
+  `;
+
+            $("#backFleet").onclick = () => navigate("#/");
+
+            async function selectEngine(id) {
+                clearCharts();
+
+                const host = $("#prognosticDetail");
+                host.innerHTML = '<p class="m">Loading sensor analysis...</p>';
+
+                try {
+                    const m = await api("/machines/" + encodeURIComponent(id));
+                    const sensorNames = Object.keys(m.series || {});
+                    const selected = new Set(
+                        (m.component?.drivers || []).slice(0, 3).map(d => d.sensor)
+                    );
+
+                    let deviation = true;
+
+                    host.innerHTML = `
+        <h2>Engine analysis: <span class="mono">${escapeHTML(m.machineId)}</span></h2>
+
+        <div class="cards">
+          <div class="card"><div class="number">${num(m.predictedRul)}</div><div class="label">Predicted RUL (cycles)</div></div>
+          <div class="card"><div class="number">${num(m.failureProb30 * 100)}%</div><div class="label">Failure within 30 cycles</div></div>
+          <div class="card"><div class="number">${num(m.riskScore)}</div><div class="label">Risk score</div>${badge(m.band)}</div>
+          <div class="card"><div class="number">${num(m.cyclesObserved)}</div><div class="label">Cycles observed</div></div>
+        </div>
+
+        <div class="box">
+          <h2 style="margin-top:0">Indicative component: ${escapeHTML(m.component?.name || m.componentName || "Unknown")}</h2>
+          <p class="m">Estimated from sensor deviations; this is not a confirmed diagnosis.</p>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Sensor</th><th>Deviation from baseline (sigma)</th><th>Direction</th></tr></thead>
+              <tbody>
+                ${(m.component?.drivers || []).map(d => `
+                  <tr><td>${escapeHTML(d.label)}</td><td>${escapeHTML(d.deviationSigma)}</td><td>${escapeHTML(d.direction)}</td></tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h2>Sensor trends</h2>
+
+        <div class="chk">
+          ${sensorNames.map(sensor => `
+            <label>
+              <input type="checkbox" data-progsensor="${escapeHTML(sensor)}"
+                ${selected.has(sensor) ? "checked" : ""}>
+              ${escapeHTML(m.series[sensor].label)}
+            </label>
+          `).join("")}
+        </div>
+
+        <p><label><input type="checkbox" id="progDeviation" checked> Show deviation from baseline</label></p>
+
+        <div class="chart"><canvas id="progSensorChart"></canvas></div>
+
+        <h2>Remaining useful life trend</h2>
+        <div class="chart"><canvas id="progRulChart"></canvas></div>
+
+        <div class="row">
+          <a href="#/m/${encodeURIComponent(m.machineId)}">Open full machine details →</a>
+          <button id="createProgWO" class="p">Create draft work order</button>
+        </div>
+      `;
+
+                    function drawSensors() {
+                        const old = charts.find(c => c.canvas?.id === "progSensorChart");
+
+                        if (old) {
+                            old.destroy();
+                            charts = charts.filter(c => c !== old);
+                        }
+
+                        const datasets = [...selected].map((sensor, i) => {
+                            const series = m.series[sensor];
+
+                            return {
+                                label: series.label,
+                                data: deviation
+                                    ? series.values.map(v => (v - series.baselineMean) / (series.baselineStd || 1))
+                                    : series.values,
+                                borderColor: COLORS[i % COLORS.length],
+                                borderWidth: 1.6,
+                                pointRadius: 0,
+                                tension: .12
+                            };
+                        });
+
+                        makeChart("#progSensorChart", {
+                            type: "line",
+                            data: { labels: m.cycles, datasets },
+                            options: chartOptions(deviation ? "Deviation from baseline (sigma)" : "Sensor value")
+                        });
+                    }
+
+                    drawSensors();
+
+                    host.querySelectorAll("[data-progsensor]").forEach(input => {
+                        input.onchange = () => {
+                            if (input.checked) selected.add(input.dataset.progsensor);
+                            else selected.delete(input.dataset.progsensor);
+                            drawSensors();
+                        };
+                    });
+
+                    $("#progDeviation").onchange = event => {
+                        deviation = event.target.checked;
+                        drawSensors();
+                    };
+
+                    const history = m.rulHistory || [];
+
+                    makeChart("#progRulChart", {
+                        type: "line",
+                        data: {
+                            labels: history.map(h => h.cycle),
+                            datasets: [
+                                { label: "Predicted RUL", data: history.map(h => h.predicted), borderColor: COLORS[0], borderWidth: 2, pointRadius: 0 },
+                                { label: "Lower estimate", data: history.map(h => h.lower), borderColor: COLORS[3], borderDash: [4, 4], pointRadius: 0 },
+                                { label: "Upper estimate", data: history.map(h => h.upper), borderColor: COLORS[2], borderDash: [4, 4], pointRadius: 0 },
+                                { label: "30-cycle threshold", data: history.map(() => 30), borderColor: COLORS[4], borderDash: [3, 3], pointRadius: 0 }
+                            ]
+                        },
+                        options: chartOptions("Operating cycle")
+                    });
+
+                    $("#createProgWO").onclick = async () => {
+                        try {
+                            const order = await api("/work-orders", {
+                                method: "POST",
+                                body: { machineId: id }
+                            });
+                            navigate("#/wo/" + encodeURIComponent(order.id));
+                        } catch (error) {
+                            alert(error.message);
+                        }
+                    };
+
+                } catch (error) {
+                    host.innerHTML = `
+        <p class="err">${escapeHTML(error.message)}</p>
+        <button id="returnFleet">Return to Fleet Health</button>
+      `;
+                    $("#returnFleet").onclick = () => navigate("#/");
+                }
+            }
+
+            $("#progEngine").onchange = e => selectEngine(e.target.value);
+
+            document.querySelectorAll(".enginePick").forEach(button => {
+                button.onclick = () => {
+                    $("#progEngine").value = button.dataset.engine;
+                    selectEngine(button.dataset.engine);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                };
+            });
+
+            if (firstID) await selectEngine(firstID);
+        }
+
+        /* MACHINE DETAILS */
+
+        async function machine(id) {
+            const m = await api("/machines/" + encodeURIComponent(id));
+            const sensors = Object.keys(m.series || {});
+            const selected = new Set((m.component?.drivers || []).slice(0, 3).map(d => d.sensor));
+            let deviation = true;
+
+            app.innerHTML = `
+    <div class="row" style="margin-top:0">
+      <button id="backFleet">← Fleet Health</button>
+      <button id="openPrognostics">Engine prognostics</button>
+    </div>
+
+    <h1 style="margin-top:24px"><span class="mono">${escapeHTML(id)}</span> ${badge(m.band)}</h1>
+
+    <div class="cards">
+      <div class="card"><div class="number">${num(m.predictedRul)}</div><div class="label">Predicted RUL (cycles)</div></div>
+      <div class="card"><div class="number">${num(m.failureProb30 * 100)}%</div><div class="label">Failure within 30 cycles</div></div>
+      <div class="card"><div class="number">${num(m.riskScore)}</div><div class="label">Risk score</div></div>
+      <div class="card"><div class="number">${num(m.cyclesObserved)}</div><div class="label">Cycles observed</div></div>
+    </div>
+
+    <div class="box">
+      <h2 style="margin-top:0">Indicative component: ${escapeHTML(m.component?.name || m.componentName || "Unknown")}</h2>
+      <p class="m">Estimated from sensor deviations; not a confirmed diagnosis.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Sensor</th><th>Deviation (sigma)</th><th>Direction</th></tr></thead>
+          <tbody>
+            ${(m.component?.drivers || []).map(d => `<tr><td>${escapeHTML(d.label)}</td><td>${escapeHTML(d.deviationSigma)}</td><td>${escapeHTML(d.direction)}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h2>Sensor trends</h2>
+    <div class="chk">
+      ${sensors.map(s => `<label><input type="checkbox" data-sensor="${escapeHTML(s)}" ${selected.has(s) ? "checked" : ""}> ${escapeHTML(m.series[s].label)}</label>`).join("")}
+    </div>
+
+    <p><label><input type="checkbox" id="machineDeviation" checked> Show deviation from baseline</label></p>
+    <div class="chart"><canvas id="machineSensorChart"></canvas></div>
+
+    <h2>Predicted RUL over time</h2>
+    <div class="chart"><canvas id="machineRulChart"></canvas></div>
+
+    <div class="row">
+      ${m.workOrderId
+                    ? `<a href="#/wo/${encodeURIComponent(m.workOrderId)}">View work order ${escapeHTML(m.workOrderId)}</a>`
+                    : '<button class="p" id="createMachineWO">Create draft work order</button>'}
+    </div>
+  `;
+
+            $("#backFleet").onclick = () => navigate("#/");
+            $("#openPrognostics").onclick = () => navigate("#/prognostics");
+
+            function drawSensors() {
+                const old = charts.find(c => c.canvas?.id === "machineSensorChart");
+                if (old) {
+                    old.destroy();
+                    charts = charts.filter(c => c !== old);
+                }
+
+                makeChart("#machineSensorChart", {
+                    type: "line",
+                    data: {
+                        labels: m.cycles,
+                        datasets: [...selected].map((s, i) => {
+                            const v = m.series[s];
+                            return {
+                                label: v.label,
+                                data: deviation ? v.values.map(x => (x - v.baselineMean) / (v.baselineStd || 1)) : v.values,
+                                borderColor: COLORS[i % COLORS.length],
+                                borderWidth: 1.5,
+                                pointRadius: 0
+                            };
+                        })
+                    },
+                    options: chartOptions(deviation ? "Deviation from baseline (sigma)" : "Sensor value")
+                });
+            }
+
+            drawSensors();
+
+            document.querySelectorAll("[data-sensor]").forEach(input => {
+                input.onchange = () => {
+                    if (input.checked) selected.add(input.dataset.sensor);
+                    else selected.delete(input.dataset.sensor);
+                    drawSensors();
+                };
+            });
+
+            $("#machineDeviation").onchange = e => {
+                deviation = e.target.checked;
+                drawSensors();
+            };
+
+            const history = m.rulHistory || [];
+
+            makeChart("#machineRulChart", {
+                type: "line",
+                data: {
+                    labels: history.map(h => h.cycle),
+                    datasets: [
+                        { label: "Predicted RUL", data: history.map(h => h.predicted), borderColor: COLORS[0], pointRadius: 0 },
+                        { label: "Lower estimate", data: history.map(h => h.lower), borderColor: COLORS[3], borderDash: [4, 4], pointRadius: 0 },
+                        { label: "Upper estimate", data: history.map(h => h.upper), borderColor: COLORS[2], borderDash: [4, 4], pointRadius: 0 }
+                    ]
+                },
+                options: chartOptions("Operating cycle")
+            });
+
+            if ($("#createMachineWO")) {
+                $("#createMachineWO").onclick = async () => {
+                    try {
+                        const order = await api("/work-orders", {
+                            method: "POST",
+                            body: { machineId: id }
+                        });
+                        navigate("#/wo/" + encodeURIComponent(order.id));
+                    } catch (error) {
+                        alert(error.message);
+                    }
+                };
+            }
+        }
+
+        /* WORK ORDERS */
+
+        async function workOrderList() {
+            const orders = await api("/work-orders");
+            const filtered = orders.filter(w =>
+                workOrderStatus === "All" || w.status === workOrderStatus
+            );
+
+            app.innerHTML = `
+    <h1>Work orders</h1>
+
+    <div class="tabs">
+      ${["All", "Draft", "Approved", "Cancelled"].map(s => `
+        <button data-status="${s}" class="${s === workOrderStatus ? "on" : ""}">${s}</button>
+      `).join("")}
+    </div>
+
+    ${filtered.length ? `
+      <div class="scroll">
+        <table>
+          <thead><tr><th>ID</th><th>Machine</th><th>Priority</th><th>Status</th><th>Title</th><th>Created</th></tr></thead>
+          <tbody>
+            ${filtered.map(w => `
+              <tr>
+                <td><a href="#/wo/${encodeURIComponent(w.id)}">${escapeHTML(w.id)}</a></td>
+                <td><a href="#/m/${encodeURIComponent(w.machineId)}">${escapeHTML(w.machineId)}</a></td>
+                <td>${badge(w.priority)}</td>
+                <td>${badge(w.status)}</td>
+                <td>${escapeHTML(w.title)}</td>
+                <td>${escapeHTML(w.createdAt)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : `
+      <p class="m">No work orders found.</p>
+      <button class="p" id="openFleet">Open Fleet Health</button>
+    `}
+  `;
+
+            if ($("#openFleet")) $("#openFleet").onclick = () => navigate("#/");
+
+            document.querySelectorAll("[data-status]").forEach(button => {
+                button.onclick = () => {
+                    workOrderStatus = button.dataset.status;
+                    workOrderList();
+                };
+            });
+        }
+
+        async function workOrderDetail(id) {
+            const w = await api("/work-orders/" + encodeURIComponent(id));
+            const e = w.evidence;
+            const editable = w.status === "Draft";
+
+            app.innerHTML = `
+    <div class="row" style="margin-top:0">
+      <button id="backOrders">← Work orders</button>
+      <button id="backFleet">Fleet Health</button>
+    </div>
+
+    <div class="doc">
+      <h1 style="margin-top:24px">${escapeHTML(w.title)}</h1>
+      <p><span class="mono">${escapeHTML(w.id)}</span> ${badge(w.status)} ${badge(w.priority)}</p>
+      <p><a href="#/m/${encodeURIComponent(w.machineId)}">${escapeHTML(w.machineId)}</a></p>
+      <p>${escapeHTML(w.summary)}</p>
+
+      <h2>Prediction evidence</h2>
+      <dl>
+        <dt>Predicted RUL</dt><dd>${num(e.predictedRul)} cycles</dd>
+        <dt>Failure within 30 cycles</dt><dd>${num(e.failureProb30 * 100)}%</dd>
+        <dt>Cycles observed</dt><dd>${num(e.cyclesObserved)}</dd>
+      </dl>
+
+      <h2>Indicative component: ${escapeHTML(w.likelyComponent.name)}</h2>
+      <ul>${w.likelyComponent.drivers.map(d => `<li>${escapeHTML(d.label)}: ${escapeHTML(d.deviationSigma)} sigma, ${escapeHTML(d.direction)}</li>`).join("")}</ul>
+
+      <h2>Recommended actions</h2>
+      <ol>${w.recommendedActions.map(a => `<li>${escapeHTML(a)}</li>`).join("")}</ol>
+
+      <h2>Maintenance notes</h2>
+      <textarea id="orderNotes" ${editable ? "" : "disabled"}>${escapeHTML(w.notes || "")}</textarea>
+
+      <div class="row">
+        ${editable ? '<button id="saveNotes">Save notes</button><button class="p" id="approveOrder">Approve</button><button id="cancelOrder">Cancel</button>' : ""}
+        <button id="printOrder">Print</button>
+      </div>
+    </div>
+  `;
+
+            $("#backOrders").onclick = () => navigate("#/wo");
+            $("#backFleet").onclick = () => navigate("#/");
+            $("#printOrder").onclick = () => window.print();
+
+            if (editable) {
+                async function update(changes) {
+                    try {
+                        await api("/work-orders/" + encodeURIComponent(id), {
+                            method: "PATCH",
+                            body: { notes: $("#orderNotes").value, ...changes }
+                        });
+                        await workOrderDetail(id);
+                    } catch (error) {
+                        alert(error.message);
+                    }
+                }
+
+                $("#saveNotes").onclick = () => update({});
+                $("#approveOrder").onclick = () => update({ status: "Approved" });
+                $("#cancelOrder").onclick = () => update({ status: "Cancelled" });
+            }
+        }
+
+        /* MODEL PERFORMANCE */
+
+        async function modelPerformance() {
+            const m = await api("/model");
+            const r = m.regression;
+            const c = m.classification;
+            const k = c.confusion;
+
+            app.innerHTML = `
+    <h1>Model performance</h1>
+    <p class="m">${escapeHTML(m.name)}. Trained on ${escapeHTML(m.trainedOn)}.</p>
+
+    <h2>RUL error (cycles)</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Model</th><th>RMSE</th></tr></thead>
+        <tbody>
+          <tr><td>This model</td><td>${r.rmse}</td></tr>
+          ${r.baselines.map(b => `<tr><td>${escapeHTML(b.name)}</td><td>${b.rmse}</td></tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <p>MAE ${r.mae} cycles. NASA score ${r.nasaScore}.</p>
+
+    <h2>Failure within ${c.horizon} cycles</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th></tr></thead>
+        <tbody><tr><td>${c.precision}</td><td>${c.recall}</td><td>${c.f1}</td><td>${c.rocAuc}</td></tr></tbody>
+      </table>
+    </div>
+
+    <h2>Confusion matrix</h2>
+    <table style="max-width:500px">
+      <thead><tr><th></th><th>Predicted fail</th><th>Predicted OK</th></tr></thead>
+      <tbody>
+        <tr><td>Actually fails</td><td>${k.tp}</td><td>${k.fn}</td></tr>
+        <tr><td>Actually OK</td><td>${k.fp}</td><td>${k.tn}</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Predicted vs actual RUL</h2>
+    <div class="chart"><canvas id="predictionChart"></canvas></div>
+
+    <h2>Evaluation methodology</h2>
+    <p>${escapeHTML(m.evaluation)}</p>
+
+    <h2>Limitations</h2>
+    <ul>${m.limitations.map(item => `<li>${escapeHTML(item)}</li>`).join("")}</ul>
+  `;
+
+            const points = m.predictedVsActual;
+
+            makeChart("#predictionChart", {
+                type: "scatter",
+                data: {
+                    datasets: [
+                        {
+                            label: "Test engines",
+                            data: points.map(p => ({ x: p.actual, y: p.predicted })),
+                            backgroundColor: COLORS[0]
+                        },
+                        {
+                            label: "Perfect prediction",
+                            type: "line",
+                            data: [{ x: 0, y: 0 }, { x: m.rulCap, y: m.rulCap }],
+                            borderColor: COLORS[3],
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    ...chartOptions("Actual RUL (cycles)"),
+                    scales: {
+                        x: { title: { display: true, text: "Actual RUL (cycles, capped)" } },
+                        y: { title: { display: true, text: "Predicted RUL (cycles)" } }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener("hashchange", renderRoute);
+        renderRoute();
+    </script>
+</body>
+
+</html>
